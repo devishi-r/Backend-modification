@@ -34,46 +34,114 @@
     </table>
 
     <script>
-        fetch('/data')
-            .then(response => response.json())
-            .then(data => {
-                const tableBody = document.getElementById('data-table').querySelector('tbody');
-                data.forEach(row => {
-                    const tr = document.createElement('tr');
-                    tr.innerHTML = `<td>${row.brand}</td><td>${row.model}</td><td>${row.year}</td>
-                    <td><button class="update-button">Update</button>
-                                <button class="apply-button">Apply</button></td>`;
-                    tableBody.appendChild(tr);
+        // fetch('/data')
+        //     .then(response => response.json())
+        //     .then(data => {
+        //         const tableBody = document.getElementById('data-table').querySelector('tbody');
+        //         data.forEach(row => {
+        //             const tr = document.createElement('tr');
+        //             tr.innerHTML = `<td>${row.id}</td><td>${row.brand}</td><td>${row.model}</td><td>${row.year}</td>
+        //             <td><button class="update-button">Update</button>
+        //                         <button class="apply-button">Apply</button></td>`;
+        //             tableBody.appendChild(tr);
+        //             });
+
+        //     document.querySelectorAll('.apply-button').forEach(button => {
+        //             button.addEventListener('click', () => {
+        //                 const row = button.closest('tr');
+        //                 const isEditable = row.contentEditable === "true";
+        //                 if (isEditable) {
+        //                     row.contentEditable = "false";
+        //                     button.textContent = "Apply";
+        //                     saveEdits(row);
+        //                 } else {
+        //                     row.contentEditable = "true";
+        //                     button.textContent = "Save";
+        //                 }
+        //     // .catch(error => console.error('Error fetching data:', error));
+        //             });
+        //         });
+        //         function saveEdits(row) {
+        //             const cells = row.querySelectorAll('td');
+        //             const updatedData = {
+        //                 brand: cells[0].textContent,
+        //                 model: cells[1].textContent,
+        //                 year: cells[2].textContent
+        //             };
+
+        //             // Here you can send the updatedData to the server if needed
+        //             console.log('Updated data:', updatedData); 
+        //         }
+        //     })
+        //     .catch(error => console.error('Error fetching data:', error));
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetch('/data')
+                .then(response => {
+                    console.log('Raw response:', response);
+                    return response.json();
+                })
+                .then(data => {
+                    const tableBody = document.getElementById('data-table').querySelector('tbody');
+                    data.forEach(row => {
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = `<td>${row.id}</td><td>${row.brand}</td><td>${row.model}</td><td>${row.year}</td>
+                        <td><button class="apply-button">Apply</button></td>`;
+                        tableBody.appendChild(tr);
                     });
 
-            document.querySelectorAll('.apply-button').forEach(button => {
-                    button.addEventListener('click', () => {
-                        const row = button.closest('tr');
-                        const isEditable = row.contentEditable === "true";
-                        if (isEditable) {
-                            row.contentEditable = "false";
-                            button.textContent = "Apply";
-                            saveEdits(row);
-                        } else {
-                            row.contentEditable = "true";
-                            button.textContent = "Save";
-                        }
-            // .catch(error => console.error('Error fetching data:', error));
+                    document.querySelectorAll('.apply-button').forEach(button => {
+                        button.addEventListener('click', () => {
+                            const row = button.closest('tr');
+                            const isEditable = row.contentEditable === "true";
+                            if (isEditable) {
+                                row.contentEditable = "false";
+                                button.textContent = "Apply";
+                                saveEdits(row);
+                            } else {
+                                row.contentEditable = "true";
+                                button.textContent = "Save";
+                            }
+                        });
                     });
-                });
-                function saveEdits(row) {
-                    const cells = row.querySelectorAll('td');
-                    const updatedData = {
-                        brand: cells[0].textContent,
-                        model: cells[1].textContent,
-                        year: cells[2].textContent
-                    };
 
-                    // Here you can send the updatedData to the server if needed
-                    console.log('Updated data:', updatedData);
-                }
-            })
-            .catch(error => console.error('Error fetching data:', error));
+                    function saveEdits(row) {
+                        const cells = row.querySelectorAll('td');
+                        const updatedData = {
+                            id: cells[0].textContent,
+                            brand: cells[1].textContent,
+                            model: cells[2].textContent,
+                            year: cells[3].textContent
+                        };
+
+                        console.log('Updated data:', updatedData);
+
+                        fetch('/update', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(updatedData)
+                        })
+                        // .then(response => response.json())
+                        // .then(data => {
+                        //     console.log('Success:', data);
+                        // })
+                        .then(response => response.text()) // Change .json() to .text() to log raw response
+                        .then(data => {
+                    console.log('Raw response:', data);
+                    return JSON.parse(data); // Then parse it if it looks correct
+                })
+                .then(parsedData => {
+                    console.log('Parsed data:', parsedData);
+                })
+                        .catch(error => {
+                            console.error('Error updating data:', error);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        });
     </script>
 </body>
 </html>
